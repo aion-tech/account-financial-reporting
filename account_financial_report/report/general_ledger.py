@@ -575,7 +575,7 @@ class GeneralLedgerReport(models.AbstractModel):
                 account.update({ml_id: gen_led_data[acc_id][ml_id]})
             else:
                 move_lines += [gen_led_data[acc_id][ml_id]]
-        move_lines = sorted(move_lines, key=lambda k: (k["date"]))
+        move_lines = sorted(move_lines, key=lambda k: (k["date"], k["id"]))
         move_lines = self._recalculate_cumul_balance(
             move_lines,
             gen_led_data[acc_id]["init_bal"]["balance"],
@@ -595,7 +595,7 @@ class GeneralLedgerReport(models.AbstractModel):
                 for ml_id in gen_led_data[acc_id][prt_id].keys():
                     if isinstance(ml_id, int):
                         move_lines += [gen_led_data[acc_id][prt_id][ml_id]]
-        move_lines = sorted(move_lines, key=lambda k: (k["date"]))
+        move_lines = sorted(move_lines, key=lambda k: (k["date"], k["id"]))
         move_lines = self._recalculate_cumul_balance(
             move_lines,
             gen_led_data[acc_id]["init_bal"]["balance"],
@@ -619,7 +619,7 @@ class GeneralLedgerReport(models.AbstractModel):
                         group_item.update({ml_id: data[data_id][ml_id]})
                     else:
                         move_lines += [data[data_id][ml_id]]
-                move_lines = sorted(move_lines, key=lambda k: (k["date"]))
+                move_lines = sorted(move_lines, key=lambda k: (k["date"], k["id"]))
                 move_lines = self._recalculate_cumul_balance(
                     move_lines,
                     data[data_id]["init_bal"]["balance"],
