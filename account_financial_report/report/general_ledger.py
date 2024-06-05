@@ -50,18 +50,19 @@ class GeneralLedgerReport(models.AbstractModel):
             )
         return taxes_data
 
-    def _get_account_internal_types(self, grouped_by):
-        return (
-            ["asset_receivable", "liability_payable"]
-            if grouped_by != "taxes"
-            else ["other"]
-        )
+    def _get_account_type_domain(self, grouped_by):
+        """To avoid set all possible types, set in or not in as operator of the types
+        we are interested in. In v15 we used the internal_type field (type of
+        account.account.type)."""
+        at_op = "in" if grouped_by != "taxes" else "not in"
+        return [
+            ("account_type", at_op, ["asset_receivable", "liability_payable"]),
+        ]
 
     def _get_acc_prt_accounts_ids(self, company_id, grouped_by):
         accounts_domain = [
             ("company_id", "=", company_id),
-            ("account_type", "in", self._get_account_internal_types(grouped_by)),
-        ]
+        ] + self._get_account_type_domain(grouped_by)
         acc_prt_accounts = self.env["account.account"].search(accounts_domain)
         return acc_prt_accounts.ids
 
@@ -80,8 +81,7 @@ class GeneralLedgerReport(models.AbstractModel):
         accounts = self.env["account.account"].search(accounts_domain)
         domain += [("account_id", "in", accounts.ids)]
         if acc_prt:
-            internal_types = self._get_account_internal_types(grouped_by)
-            domain += [("account_type", "in", internal_types)]
+            domain += self._get_account_type_domain(grouped_by)
         return domain
 
     def _get_initial_balances_pl_ml_domain(
@@ -205,7 +205,7 @@ class GeneralLedgerReport(models.AbstractModel):
             for gl in gl_initial_acc_prt:
                 if not gl["partner_id"]:
                     prt_id = 0
-                    prt_name = "Missing Partner"
+                    prt_name = _("Missing Partner")
                 else:
                     prt_id = gl["partner_id"][0]
                     prt_name = gl["partner_id"][1]
@@ -415,7 +415,7 @@ class GeneralLedgerReport(models.AbstractModel):
             item_name = (
                 move_line["partner_id"][1]
                 if move_line["partner_id"]
-                else "Missing Partner"
+                else _("Missing Partner")
             )
             res.append({"id": item_id, "name": item_name})
         elif grouped_by == "taxes":
@@ -764,6 +764,25 @@ class GeneralLedgerReport(models.AbstractModel):
             list_centralized_ml += list(centralized_ml[jnl_id].values())
         return list_centralized_ml
 
+    @api.model
+    def _get_joined_entries_ml(self, account):
+        ml = {}
+        for entry in account.get("move_lines", []):
+            entry_id = entry["entry_id"]
+            if not ml.get(entry_id, False):
+                ml[entry_id] = entry
+            else:
+                ml[entry_id]["balance"] -= entry["credit"]
+                ml[entry_id]["bal_curr"] += entry["bal_curr"]
+                ml[entry_id]["credit"] += entry["credit"]
+                ml[entry_id]["debit"] += entry["debit"]
+                ml[entry_id]["tax_ids"] += entry["tax_ids"]
+                ml[entry_id]["tax_ids"] = list(set(ml[entry_id]["tax_ids"]))
+                ml[entry_id]["name"] = "Joined Entries"
+                ml[entry_id]["ref_label"] = "Joined Entries"
+                ml[entry_id]["id"] = None
+        return list(ml.values())
+
     def _get_report_values(self, docids, data):
         wizard_id = data["wizard_id"]
         company = self.env["res.company"].browse(data["company_id"])
@@ -780,6 +799,7 @@ class GeneralLedgerReport(models.AbstractModel):
         unaffected_earnings_account = data["unaffected_earnings_account"]
         fy_start_date = data["fy_start_date"]
         extra_domain = data["domain"]
+        join_entry_ml = data["join_entry_ml"]
         gen_ld_data = self._get_initial_balance_data(
             account_ids,
             partner_ids,
@@ -837,6 +857,25 @@ class GeneralLedgerReport(models.AbstractModel):
                     if grouped_by and account[grouped_by]:
                         account[grouped_by] = False
                         del account["list_grouped"]
+        elif join_entry_ml:
+            for account in general_ledger:
+                if account.get("move_lines", []):
+                    joined_entries_ml = self._get_joined_entries_ml(account)
+                    account["move_lines"] = joined_entries_ml
+                    # account["move_lines"] = self._recalculate_cumul_balance(
+                    #         account["move_lines"],
+                    #         gen_ld_data[account["id"]]["init_bal"]["balance"],
+                    #         rec_after_date_to_ids,
+                    #     )
+                if grouped_by and account[grouped_by]:
+                    for item in account.get("list_grouped", []):
+                        joined_entries_ml = self._get_joined_entries_ml(item)
+                        item["move_lines"] = joined_entries_ml
+                        # item["move_lines"] = self._recalculate_cumul_balance(
+                        #     item["move_lines"],
+                        #     gen_ld_data[account["id"]]["init_bal"]["balance"],
+                        #     rec_after_date_to_ids,
+                        # )
         general_ledger = sorted(general_ledger, key=lambda k: k["code"])
         return {
             "doc_ids": [wizard_id],

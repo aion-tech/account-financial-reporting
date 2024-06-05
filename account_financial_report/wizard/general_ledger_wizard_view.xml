@@ -26,6 +26,7 @@
                         </group>
                         <group name="other_filters">
                             <field name="grouped_by" />
+                            <field name="join_entry_ml" />
                             <field name="centralize" />
                             <field name="hide_account_at_0" />
                             <field name="foreign_currency" />
