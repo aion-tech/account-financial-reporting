@@ -303,6 +303,7 @@ class GeneralLedgerReportWizard(models.TransientModel):
             "unaffected_earnings_account": self.unaffected_earnings_account.id,
             "account_financial_report_lang": self.env.lang,
             "domain": self._get_account_move_lines_domain(),
+            "join_entry_ml": self.join_entry_ml,
         }
 
     def _export(self, report_type):
@@ -314,3 +315,18 @@ class GeneralLedgerReportWizard(models.TransientModel):
             return data[obj_id][key]
         except KeyError:
             return data[str(obj_id)][key]
+
+    join_entry_ml = fields.Boolean('Join Entry Lines', default=False, 
+            help='If checked, the report will join records from the same entry. \
+                Can be used with either the "Partners" or "Taxes" grouping option.\
+                    Automatically sets the "Centralize" option to False.')
+
+    @api.onchange('join_entry_ml')
+    def onchange_join_entry_ml(self):
+        if self.join_entry_ml:
+            self.centralize = False
+
+    @api.onchange('centralize')
+    def onchange_centralize(self):
+        if self.centralize:
+            self.join_entry_ml = False
