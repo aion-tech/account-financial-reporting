@@ -389,6 +389,19 @@
                                 />
                             </span>
                         </t>
+                        <t t-elif="line['entry_id']">
+                            <!--## We don't use t-field because it throws an error on click -->
+                            <span
+                                t-att-res-id="line['entry_id']"
+                                res-model="account.move"
+                                view-type="form"
+                            >
+                                <t
+                                    t-esc="line['date']"
+                                    t-options="{'widget': 'date'}"
+                                />
+                            </span>
+                        </t>
                         <t t-else="">
                             <span>
                                 <!--## We don't use t-field because it throws an error on click -->
@@ -469,6 +482,15 @@
                                 <t t-out="line['ref_label']" />
                             </span>
                         </t>
+                        <t t-elif="line['entry_id']">
+                            <span
+                                t-att-res-id="line['entry_id']"
+                                res-model="account.move"
+                                view-type="form"
+                            >
+                                <t t-out="line['ref_label']" />
+                            </span>
+                        </t>
                         <t t-else="">
                             <span>
                                 <t t-out="line['ref_label']" />
@@ -541,6 +563,18 @@
                                 />
                             </span>
                         </t>
+                        <t t-elif="line['entry_id']">
+                            <span
+                                t-att-res-id="line['entry_id']"
+                                res-model="account.move"
+                                view-type="form"
+                            >
+                                <t
+                                    t-out="line['debit']"
+                                    t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                />
+                            </span>
+                        </t>
                         <t t-else="">
                             <span>
                                 <t
@@ -564,6 +598,18 @@
                                 />
                             </span>
                         </t>
+                        <t t-elif="line['entry_id']">
+                            <span
+                                t-att-res-id="line['entry_id']"
+                                res-model="account.move"
+                                view-type="form"
+                            >
+                                <t
+                                    t-out="line['credit']"
+                                    t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                />
+                            </span>
+                        </t>
                         <t t-else="">
                             <span>
                                 <t
@@ -579,6 +625,18 @@
                             <span
                                 t-att-res-id="line['id']"
                                 res-model="account.move.line"
+                                view-type="form"
+                            >
+                                <t
+                                    t-out="line['balance']"
+                                    t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                />
+                            </span>
+                        </t>
+                        <t t-elif="line['entry_id']">
+                            <span
+                                t-att-res-id="line['entry_id']"
+                                res-model="account.move"
                                 view-type="form"
                             >
                                 <t
