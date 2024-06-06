@@ -772,15 +772,19 @@ class GeneralLedgerReport(models.AbstractModel):
             if not ml.get(entry_id, False):
                 ml[entry_id] = entry
             else:
-                ml[entry_id]["balance"] -= entry["credit"]
+                if not ml[entry_id].get("is_joined_entry", False):
+                    ml[entry_id]["is_joined_entry"] = True
+                    ml[entry_id]["name"] = self.env["account.move"].browse(
+                        entry["entry_id"]).name
+                    ml[entry_id]["ref_label"] = ml[entry_id]["name"]
+                    ml[entry_id]["id"] = None                
+                ml[entry_id]["balance"] += (entry["debit"] - entry["credit"])
                 ml[entry_id]["bal_curr"] += entry["bal_curr"]
                 ml[entry_id]["credit"] += entry["credit"]
                 ml[entry_id]["debit"] += entry["debit"]
                 ml[entry_id]["tax_ids"] += entry["tax_ids"]
                 ml[entry_id]["tax_ids"] = list(set(ml[entry_id]["tax_ids"]))
-                ml[entry_id]["name"] = "Joined Entries"
-                ml[entry_id]["ref_label"] = "Joined Entries"
-                ml[entry_id]["id"] = None
+        # filtered_ml = {k: v for k, v in ml.items() if v["name"] == "Joined Entries"}
         return list(ml.values())
 
     def _get_report_values(self, docids, data):
