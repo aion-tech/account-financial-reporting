@@ -776,7 +776,7 @@ class GeneralLedgerReport(models.AbstractModel):
                     ml[entry_id]["is_joined_entry"] = True
                     ml[entry_id]["name"] = self.env["account.move"].browse(
                         entry["entry_id"]).name
-                    ml[entry_id]["ref_label"] = ml[entry_id]["name"]
+                    ml[entry_id]["ref_label"] = ml[entry_id]["ref"]
                     ml[entry_id]["id"] = None                
                 ml[entry_id]["balance"] += (entry["debit"] - entry["credit"])
                 ml[entry_id]["bal_curr"] += entry["bal_curr"]
