@@ -304,6 +304,7 @@ class GeneralLedgerReportWizard(models.TransientModel):
             "account_financial_report_lang": self.env.lang,
             "domain": self._get_account_move_lines_domain(),
             "join_entry_ml": self.join_entry_ml,
+            "hide_rows_at_0": self.hide_rows_at_0,
         }
 
     def _export(self, report_type):
@@ -320,6 +321,9 @@ class GeneralLedgerReportWizard(models.TransientModel):
             help='If checked, the report will join records from the same entry. \
                 Can be used with either the "Partners" or "Taxes" grouping option.\
                     Automatically sets the "Centralize" option to False.')
+    
+    hide_rows_at_0 = fields.Boolean('Hide rows at 0', default=False,
+            help='If checked, the report will hide rows with Debit and Credit at 0.')
 
     @api.onchange('join_entry_ml')
     def onchange_join_entry_ml(self):
@@ -330,3 +334,7 @@ class GeneralLedgerReportWizard(models.TransientModel):
     def onchange_centralize(self):
         if self.centralize:
             self.join_entry_ml = False
+
+    @api.model
+    def filter_move_lines(self, move_lines):
+        return [l for l in move_lines if not (l['credit'] == 0.0 and l['debit'] == 0.0)]

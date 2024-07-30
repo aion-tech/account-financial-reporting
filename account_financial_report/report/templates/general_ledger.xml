@@ -371,7 +371,16 @@
                 t-set="total_bal_curr"
                 t-value="account_or_group_item_object['init_bal'].get('bal_curr', 0)"
             />
-            <t t-foreach="account_or_group_item_object['move_lines']" t-as="line">
+            <!-- If field hide_rows_at_0, do not show lines with both credit and debit == 0 -->
+            <t t-if="hide_rows_at_0">
+                <t t-if="account_or_group_item_object and account_or_group_item_object['move_lines']">
+                    <t t-set="account_or_group_item_move_lines" t-value="o.filter_move_lines(account_or_group_item_object['move_lines'])"/>
+                </t>
+            </t>
+            <t t-else="">
+                <t t-set="account_or_group_item_move_lines" t-value="account_or_group_item_object['move_lines']"/>
+            </t>
+            <t t-foreach="account_or_group_item_move_lines" t-as="line">
                 <!-- # lines or centralized lines -->
                 <div class="act_as_row lines">
                     <!--## date-->
