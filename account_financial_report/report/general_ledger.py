@@ -804,6 +804,7 @@ class GeneralLedgerReport(models.AbstractModel):
         fy_start_date = data["fy_start_date"]
         extra_domain = data["domain"]
         join_entry_ml = data["join_entry_ml"]
+        hide_rows_at_0 = data["hide_rows_at_0"]
         gen_ld_data = self._get_initial_balance_data(
             account_ids,
             partner_ids,
@@ -866,20 +867,10 @@ class GeneralLedgerReport(models.AbstractModel):
                 if account.get("move_lines", []):
                     joined_entries_ml = self._get_joined_entries_ml(account)
                     account["move_lines"] = joined_entries_ml
-                    # account["move_lines"] = self._recalculate_cumul_balance(
-                    #         account["move_lines"],
-                    #         gen_ld_data[account["id"]]["init_bal"]["balance"],
-                    #         rec_after_date_to_ids,
-                    #     )
                 if grouped_by and account[grouped_by]:
                     for item in account.get("list_grouped", []):
                         joined_entries_ml = self._get_joined_entries_ml(item)
                         item["move_lines"] = joined_entries_ml
-                        # item["move_lines"] = self._recalculate_cumul_balance(
-                        #     item["move_lines"],
-                        #     gen_ld_data[account["id"]]["init_bal"]["balance"],
-                        #     rec_after_date_to_ids,
-                        # )
         general_ledger = sorted(general_ledger, key=lambda k: k["code"])
         return {
             "doc_ids": [wizard_id],
@@ -903,6 +894,7 @@ class GeneralLedgerReport(models.AbstractModel):
             "analytic_data": analytic_data,
             "filter_partner_ids": True if partner_ids else False,
             "currency_model": self.env["res.currency"],
+            "hide_rows_at_0": hide_rows_at_0,
         }
 
     def _get_ml_fields(self):
