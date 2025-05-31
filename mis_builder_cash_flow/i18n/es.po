@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 12.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2023-06-06 10:08+0000\n"
-"Last-Translator: Jesarregui <jesarreguisan@gmail.com>\n"
+"PO-Revision-Date: 2023-12-13 19:36+0000\n"
+"Last-Translator: Ivorra78 <informatica@totmaterial.es>\n"
 "Language-Team: none\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
@@ -129,8 +129,10 @@ msgid "Debit"
 msgstr "Debe"
 
 #. module: mis_builder_cash_flow
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_account_account__display_name
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow__display_name
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow_forecast_line__display_name
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_report_instance_period__display_name
 msgid "Display Name"
 msgstr "Nombre mostrado"
 
@@ -146,8 +148,10 @@ msgid "Hide in Cash Flow?"
 msgstr "Ocultar en Flujo de Caja?"
 
 #. module: mis_builder_cash_flow
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_account_account__id
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow__id
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow_forecast_line__id
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_report_instance_period__id
 msgid "ID"
 msgstr "ID"
 
@@ -185,8 +189,10 @@ msgid "LIQUIDITY"
 msgstr "LIQUIDEZ"
 
 #. module: mis_builder_cash_flow
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_account_account____last_update
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow____last_update
 #: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_cash_flow_forecast_line____last_update
+#: model:ir.model.fields,field_description:mis_builder_cash_flow.field_mis_report_instance_period____last_update
 msgid "Last Modified on"
 msgstr "Última modificación el"
 
@@ -214,7 +220,6 @@ msgstr "Flujo de Caja MIS"
 #. module: mis_builder_cash_flow
 #: model:ir.model,name:mis_builder_cash_flow.model_mis_cash_flow_forecast_line
 #: model_terms:ir.ui.view,arch_db:mis_builder_cash_flow.mis_cash_flow_forecast_line_view_form
-#: model_terms:ir.ui.view,arch_db:mis_builder_cash_flow.mis_cash_flow_forecast_line_view_tree
 msgid "MIS Cash Flow Forecast Line"
 msgstr "Línea de previsión de flujo de caja MIS"
 
@@ -251,9 +256,8 @@ msgstr "Previsión Salidas"
 
 #. module: mis_builder_cash_flow
 #: model:mis.report.kpi,description:mis_builder_cash_flow.mis_kpi_out_payable
-#, fuzzy
 msgid "Out payable"
-msgstr "Salidas cuentas por pagar"
+msgstr "Por pagar"
 
 #. module: mis_builder_cash_flow
 #: model:mis.report.kpi,description:mis_builder_cash_flow.mis_kpi_period_balance
