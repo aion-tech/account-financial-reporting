@@ -50,6 +50,9 @@ class ReportStatementCommon(models.AbstractModel):
         return {}
 
     def _show_buckets_sql_q1(self, partners, date_end, account_type):
+        excluded_accounts_ids = tuple(
+            self.env.context.get("excluded_accounts_ids", [])
+        ) or (-1,)
         return str(
             self._cr.mogrify(
                 """
@@ -83,6 +86,7 @@ class ReportStatementCommon(models.AbstractModel):
                 WHERE l2.date <= %(date_end)s
             ) as pc ON pc.credit_move_id = l.id
             WHERE l.partner_id IN %(partners)s AND at.type = %(account_type)s
+                                AND aa.id not in %(excluded_accounts_ids)s
                                 AND (
                                   (pd.id IS NOT NULL AND
                                       pd.max_date <= %(date_end)s) OR
@@ -350,6 +354,11 @@ class ReportStatementCommon(models.AbstractModel):
         if isinstance(date_end, str):
             date_end = datetime.strptime(date_end, DEFAULT_SERVER_DATE_FORMAT).date()
         account_type = data["account_type"]
+        excluded_accounts_ids = data["excluded_accounts_ids"]
+        if excluded_accounts_ids:
+            self = self.with_context(
+                excluded_accounts_ids=excluded_accounts_ids,
+            )
         aging_type = data["aging_type"]
         is_activity = data.get("is_activity")
         is_detailed = data.get("is_detailed")
@@ -475,6 +484,7 @@ class ReportStatementCommon(models.AbstractModel):
                     else:
                         line_currency["ending_balance"] += line[amount_field]
                         line["balance"] = line_currency["ending_balance"]
+                line["outside-date-rank"] = False
                 line["date"] = format_date(
                     line["date"], date_formats.get(partner_id, default_fmt)
                 )
@@ -490,6 +500,14 @@ class ReportStatementCommon(models.AbstractModel):
                 )
                 for line2 in reconciled_lines:
                     if line2["id"] in line["ids"]:
+                        line2["reconciled_line"] = True
+                        line2["applied_amount"] = line2["open_amount"]
+                        if line2["date"] >= date_start and line2["date"] <= date_end:
+                            line2["outside-date-rank"] = False
+                            if not line2["blocked"]:
+                                line["applied_amount"] += line2["open_amount"]
+                        else:
+                            line2["outside-date-rank"] = True
                         line2["date"] = format_date(
                             line2["date"], date_formats.get(partner_id, default_fmt)
                         )
@@ -497,9 +515,6 @@ class ReportStatementCommon(models.AbstractModel):
                             line2["date_maturity"],
                             date_formats.get(partner_id, default_fmt),
                         )
-                        line2["reconciled_line"] = True
-                        line2["applied_amount"] = line2["open_amount"]
-                        line["applied_amount"] += line2["open_amount"]
                         if is_detailed:
                             line_currency["lines"].extend(
                                 self._add_currency_line(
@@ -508,7 +523,8 @@ class ReportStatementCommon(models.AbstractModel):
                             )
                 if is_activity:
                     line["open_amount"] = line["amount"] + line["applied_amount"]
-                    line_currency["amount_due"] += line["open_amount"]
+                    if not line["blocked"]:
+                        line_currency["amount_due"] += line["open_amount"]
 
             if is_detailed:
                 for line_currency in currency_dict.values():
@@ -567,6 +583,7 @@ class ReportStatementCommon(models.AbstractModel):
             "company": self.env["res.company"].browse(company_id),
             "Currencies": currencies,
             "account_type": account_type,
+            "excluded_accounts_ids": excluded_accounts_ids,
             "is_detailed": is_detailed,
             "bucket_labels": bucket_labels,
             "get_inv_addr": self._get_invoice_address,
